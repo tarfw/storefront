@@ -41,10 +41,19 @@ export async function loader({ request, context }: Route.LoaderArgs) {
         .slice(0, hostLabels.length - PRIMARY_DOMAIN_LABELS.length)
         .join(".");
     }
+  } else {
+    // Check if it's a custom domain with direct data
+    const domainKey = `domain:${host}`;
+    console.info("Checking custom domain", { host, domainKey });
+    const domainData = await STOREFRONT.get<LoaderData>(domainKey, { type: "json" });
+    if (domainData) {
+      console.info("Custom domain data found", { domainData });
+      return domainData;
+    }
   }
 
   if (!tenant) {
-    console.info("No tenant derived from host", { host });
+    console.info("No tenant derived from host or custom domain mapping", { host });
     return DEFAULT_CONTENT;
   }
 
